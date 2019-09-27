@@ -24,7 +24,12 @@ type TerraformProvider struct {
 }
 
 // NewTerraformProvider constructs a new provider source.
-func NewTerraformProvider(name, os, arch string) *TerraformProvider {
+func NewTerraformProvider(name, os, arch, source string) *TerraformProvider {
+	p := &TerraformProvider{}
+	// TODO: sourceStr will be required and should be verified earlier on
+	// I have no idea when or where
+	_, namespace, sourceURL := parseProviderSourceStr(source)
+
 	if os == "" {
 		os = runtime.GOOS
 	}
@@ -32,18 +37,11 @@ func NewTerraformProvider(name, os, arch string) *TerraformProvider {
 		arch = runtime.GOARCH
 	}
 
-	// separate namespace if included
-	namespace := DefaultProviderNamespace
-	if names := strings.SplitN(name, "/", 2); len(names) == 2 {
-		namespace, name = names[0], names[1]
-	}
-	p := &TerraformProvider{
-		RawHost:      PublicRegistryHost,
-		RawNamespace: namespace,
-		RawName:      name,
-		OS:           os,
-		Arch:         arch,
-	}
+	p.RawHost = sourceURL
+	p.RawNamespace = namespace
+	p.RawName = name
+	p.OS = os
+	p.Arch = arch
 
 	return p
 }
@@ -56,5 +54,34 @@ func (p *TerraformProvider) TerraformProvider() string {
 // SvcHost returns the svchost.Hostname for this provider. The
 // default PublicRegistryHost is returned.
 func (p *TerraformProvider) SvcHost() (svchost.Hostname, error) {
-	return svchost.ForComparison(PublicRegistryHost.Raw)
+	return svchost.ForComparison(p.RawHost.Raw)
+}
+
+func parseProviderSourceStr(source string) (name, namespace string, sourceURL *FriendlyHost) {
+	// TODO in the "real world" source is required and should have already been validated
+	if source == "" {
+		return "", DefaultProviderNamespace, PublicRegistryHost
+	}
+
+	parts := strings.Split(source, "/")
+	n := parts[len(parts)-1:]
+	name = strings.Join(n, "")
+
+	if len(parts) > 1 {
+		ns := parts[len(parts)-2 : len(parts)-1]
+		namespace = strings.Join(ns, "")
+	} else {
+		namespace = DefaultProviderNamespace
+	}
+
+	//TODO: the user-provided source url could have "/"
+	// regscr.FriendlyHost might be insufficient?
+	if len(parts) > 2 {
+		s := parts[:len(parts)-2]
+		sourceURL = NewFriendlyHost(strings.Join(s, "/"))
+	} else {
+		sourceURL = PublicRegistryHost
+	}
+
+	return
 }

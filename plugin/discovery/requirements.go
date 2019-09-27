@@ -22,6 +22,8 @@ type PluginConstraints struct {
 	// constraints.
 	Versions Constraints
 
+	Source string
+
 	// If non-nil, the hash of the on-disk plugin executable must exactly
 	// match the SHA256 hash given here.
 	SHA256 []byte

@@ -27,7 +27,7 @@ type Module struct {
 
 	Backend              *Backend
 	ProviderConfigs      map[string]*Provider
-	ProviderRequirements map[string][]VersionConstraint
+	ProviderRequirements map[string]*ProviderRequirement
 
 	Variables map[string]*Variable
 	Locals    map[string]*Local
@@ -79,7 +79,7 @@ func NewModule(primaryFiles, overrideFiles []*File) (*Module, hcl.Diagnostics) {
 	var diags hcl.Diagnostics
 	mod := &Module{
 		ProviderConfigs:      map[string]*Provider{},
-		ProviderRequirements: map[string][]VersionConstraint{},
+		ProviderRequirements: map[string]*ProviderRequirement{},
 		Variables:            map[string]*Variable{},
 		Locals:               map[string]*Local{},
 		Outputs:              map[string]*Output{},
@@ -161,7 +161,19 @@ func (m *Module) appendFile(file *File) hcl.Diagnostics {
 	}
 
 	for _, reqd := range file.ProviderRequirements {
-		m.ProviderRequirements[reqd.Name] = append(m.ProviderRequirements[reqd.Name], reqd.Requirement)
+		if len(m.ProviderRequirements) > 0 {
+			if _, ok := m.ProviderRequirements[reqd.Name]; ok {
+				if m.ProviderRequirements[reqd.Name].Source != "" && reqd.Source != "" {
+					diags = append(diags, &hcl.Diagnostic{
+						Severity: hcl.DiagError,
+						Summary:  "Duplicate provider source",
+						Detail:   fmt.Sprintf("A provider source for %q was already given.", reqd.Name),
+					})
+				}
+			}
+			m.ProviderRequirements[reqd.Name] = &ProviderRequirement{Source: reqd.Source}
+			m.ProviderRequirements[reqd.Name].VersionConstraints = append(m.ProviderRequirements[reqd.Name].VersionConstraints, reqd.VersionConstraints...)
+		}
 	}
 
 	for _, v := range file.Variables {
@@ -304,8 +316,18 @@ func (m *Module) mergeFile(file *File) hcl.Diagnostics {
 		}
 	}
 
-	if len(file.ProviderRequirements) != 0 {
-		mergeProviderVersionConstraints(m.ProviderRequirements, file.ProviderRequirements)
+	for _, r := range file.ProviderRequirements {
+		key := r.Name
+		if existing, exists := m.ProviderRequirements[key]; exists {
+			diags = append(diags, &hcl.Diagnostic{
+				Severity: hcl.DiagError,
+				Summary:  fmt.Sprintf("Duplicate provider source %q configuration", existing.Name),
+				Detail:   fmt.Sprintf("A provider named %q was already declared", existing.Name),
+				//Subject:  &r.DeclRange,
+			})
+			continue
+		}
+		m.ProviderRequirements[key] = r
 	}
 
 	for _, v := range file.Variables {

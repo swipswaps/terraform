@@ -1,7 +1,13 @@
 
 terraform {
   required_providers {
-    aws    = "~> 1.0.0"
-    consul = "~> 1.2.0"
+    provider "aws" {
+      version = "~> 1.0.0"
+      source  = "hashicorp/aws"
+    }
+    provider "consul" {
+      source  = "tf.example.com/hashicorp/consul"
+      version = "~> 1.2.0"
+    }
   }
 }

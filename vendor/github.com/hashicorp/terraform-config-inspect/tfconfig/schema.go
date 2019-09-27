@@ -104,3 +104,12 @@ var resourceSchema = &hcl.BodySchema{
 		},
 	},
 }
+
+var requiredProvidersSchema = &hcl.BodySchema{
+	Blocks: []hcl.BlockHeaderSchema{
+		{
+			Type:       "provider",
+			LabelNames: []string{"name"},
+		},
+	},
+}

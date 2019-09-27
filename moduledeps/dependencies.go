@@ -15,6 +15,7 @@ type Providers map[ProviderInstance]ProviderDependency
 type ProviderDependency struct {
 	Constraints discovery.Constraints
 	Reason      ProviderDependencyReason
+	Source      string
 }
 
 // ProviderDependencyReason is an enumeration of reasons why a dependency might be

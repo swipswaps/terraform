@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/zclconf/go-cty/cty"
+	"github.com/zclconf/go-cty/cty/convert"
 
 	"github.com/hashicorp/terraform/addrs"
 )
@@ -98,27 +100,56 @@ func (p *Provider) moduleUniqueKey() string {
 }
 
 // ProviderRequirement represents a declaration of a dependency on a particular
-// provider version without actually configuring that provider. This is used in
-// child modules that expect a provider to be passed in from their parent.
+// provider version and source without actually configuring that provider.
+// TODO: Add ranges for diagnostics
 type ProviderRequirement struct {
-	Name        string
-	Requirement VersionConstraint
+	Name               string
+	Source             string
+	VersionConstraints []VersionConstraint
 }
 
 func decodeRequiredProvidersBlock(block *hcl.Block) ([]*ProviderRequirement, hcl.Diagnostics) {
-	attrs, diags := block.Body.JustAttributes()
-	var reqs []*ProviderRequirement
-	for name, attr := range attrs {
-		req, reqDiags := decodeVersionConstraint(attr)
-		diags = append(diags, reqDiags...)
-		if !diags.HasErrors() {
-			reqs = append(reqs, &ProviderRequirement{
-				Name:        name,
-				Requirement: req,
-			})
+	content, _, diags := block.Body.PartialContent(providerRequirementBlockSchema)
+	reqs := make([]*ProviderRequirement, len(content.Blocks))
+
+	for _, block := range content.Blocks {
+		pr := &ProviderRequirement{
+			Name: block.Labels[0],
 		}
+		if attr, exists := content.Attributes["version"]; exists {
+			version, versionDiags := decodeVersionConstraint(attr)
+			pr.VersionConstraints = append(pr.VersionConstraints, version)
+			diags = append(diags, versionDiags...)
+		}
+		if attr, exists := content.Attributes["source"]; exists {
+			sourceDiags := pr.decodeProviderSource(attr)
+			diags = append(diags, sourceDiags...)
+		}
+		reqs = append(reqs, pr)
 	}
+
 	return reqs, diags
+}
+
+func (pr *ProviderRequirement) decodeProviderSource(attr *hcl.Attribute) (diags hcl.Diagnostics) {
+	val, diags := attr.Expr.Value(nil)
+	if diags.HasErrors() {
+		diags = append(diags, diags...)
+		return
+	}
+	var err error
+	val, err = convert.Convert(val, cty.String)
+	if err != nil {
+		diags = append(diags, &hcl.Diagnostic{
+			Severity: hcl.DiagError,
+			Summary:  "Invalid source constraint",
+			Detail:   fmt.Sprintf("A string value is required for %s.", attr.Name),
+			Subject:  attr.Expr.Range().Ptr(),
+		})
+		return
+	}
+	pr.Source = val.AsString()
+	return
 }
 
 var providerBlockSchema = &hcl.BodySchema{
@@ -140,5 +171,11 @@ var providerBlockSchema = &hcl.BodySchema{
 		// _All_ of these are reserved for future expansion.
 		{Type: "lifecycle"},
 		{Type: "locals"},
+	},
+}
+
+var providerRequirementBlockSchema = &hcl.BodySchema{
+	Blocks: []hcl.BlockHeaderSchema{
+		{Type: "provider", LabelNames: []string{"name"}},
 	},
 }

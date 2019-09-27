@@ -58,7 +58,7 @@ func configTreeConfigDependencies(root *configs.Config, inheritProviders map[str
 		// The main way to declare a provider dependency is explicitly inside
 		// the "terraform" block, which allows declaring a requirement without
 		// also creating a configuration.
-		for fullName, constraints := range module.ProviderRequirements {
+		for fullName, pr := range module.ProviderRequirements {
 			inst := moduledeps.ProviderInstance(fullName)
 
 			// The handling here is a bit fiddly because the moduledeps package
@@ -69,7 +69,7 @@ func configTreeConfigDependencies(root *configs.Config, inheritProviders map[str
 			// can also retain the source location of each constraint, for
 			// more informative output from the "terraform providers" command.
 			var rawConstraints version.Constraints
-			for _, constraint := range constraints {
+			for _, constraint := range pr.VersionConstraints {
 				rawConstraints = append(rawConstraints, constraint.Required...)
 			}
 			discoConstraints := discovery.NewConstraints(rawConstraints)
@@ -77,6 +77,7 @@ func configTreeConfigDependencies(root *configs.Config, inheritProviders map[str
 			providers[inst] = moduledeps.ProviderDependency{
 				Constraints: discoConstraints,
 				Reason:      moduledeps.ProviderDependencyExplicit,
+				Source:      pr.Source,
 			}
 		}
 

@@ -217,7 +217,10 @@ func TestLookupProviderVersions(t *testing.T) {
 		{"bar"},
 	}
 	for _, tt := range tests {
-		provider := regsrc.NewTerraformProvider(tt.name, "", "")
+		provider := regsrc.NewTerraformProvider(tt.name, "", "", "")
+		fmt.Printf("Provider RawHost: %#v\n", provider.RawHost)
+		sh, _ := provider.SvcHost()
+		fmt.Printf("Provider svchost: %#v\n", sh)
 		resp, err := client.TerraformProviderVersions(provider)
 		if err != nil {
 			t.Fatal(err)
@@ -270,7 +273,7 @@ func TestLookupProviderLocation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		// FIXME: the tests are set up to succeed - os/arch is not being validated at this time
-		p := regsrc.NewTerraformProvider(tt.Name, "linux", "amd64")
+		p := regsrc.NewTerraformProvider(tt.Name, "linux", "amd64", "hashicorp")
 
 		locationMetadata, err := client.TerraformProviderLocation(p, tt.Version)
 		if tt.Err {

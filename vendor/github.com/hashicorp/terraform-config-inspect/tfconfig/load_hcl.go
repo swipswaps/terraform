@@ -54,16 +54,36 @@ func loadModule(dir string) (*Module, Diagnostics) {
 				for _, block := range content.Blocks {
 					// Our schema only allows required_providers here, so we
 					// assume that we'll only get that block type.
-					attrs, attrDiags := block.Body.JustAttributes()
-					diags = append(diags, attrDiags...)
+					// attrs, attrDiags := block.Body.JustAttributes()
+					// diags = append(diags, attrDiags...)
 
-					for name, attr := range attrs {
-						var version string
-						valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
-						diags = append(diags, valDiags...)
-						if !valDiags.HasErrors() {
-							mod.RequiredProviders[name] = append(mod.RequiredProviders[name], version)
+					// for name, attr := range attrs {
+					var version, source string
+					// 	valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
+					// 	diags = append(diags, valDiags...)
+					// 	if !valDiags.HasErrors() {
+					// 		mod.RequiredProviders[name] = append(mod.RequiredProviders[name], version)
+					// 	}
+					// }
+					content, _, providerBlockDiags := block.Body.PartialContent(requiredProvidersSchema)
+					diags = append(diags, providerBlockDiags...)
+					for _, block := range content.Blocks {
+						//TODO ugh no
+						pr := &ProviderRequirement{Version: []string{}}
+						if attr, exists := content.Attributes["version"]; exists {
+							valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
+							diags = append(diags, valDiags...)
+							pr.Version = append(pr.Version, version)
 						}
+						if attr, exists := content.Attributes["source"]; exists {
+							sourceDiags := gohcl.DecodeExpression(attr.Expr, nil, &source)
+							diags = append(diags, sourceDiags...)
+							pr.Source = source
+						}
+
+						name := block.Labels[0]
+						// TODO: validate that the provider isn't already defined
+						mod.RequiredProviders[name] = pr
 					}
 				}
 
@@ -178,20 +198,20 @@ func loadModule(dir string) (*Module, Diagnostics) {
 				diags = append(diags, contentDiags...)
 
 				name := block.Labels[0]
+				// Even if there wasn't an explicit version required, we still
+				// need an entry in our map to signal the unversioned dependency.
+				if _, exists := mod.RequiredProviders[name]; !exists {
+					//  TODO this should be better
+					mod.RequiredProviders[name] = &ProviderRequirement{}
+				}
 
 				if attr, defined := content.Attributes["version"]; defined {
 					var version string
 					valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
 					diags = append(diags, valDiags...)
 					if !valDiags.HasErrors() {
-						mod.RequiredProviders[name] = append(mod.RequiredProviders[name], version)
+						mod.RequiredProviders[name].Version = append(mod.RequiredProviders[name].Version, version)
 					}
-				}
-
-				// Even if there wasn't an explicit version required, we still
-				// need an entry in our map to signal the unversioned dependency.
-				if _, exists := mod.RequiredProviders[name]; !exists {
-					mod.RequiredProviders[name] = []string{}
 				}
 
 			case "resource", "data":

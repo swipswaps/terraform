@@ -7,3 +7,8 @@ type ProviderRef struct {
 	Name  string `json:"name"`
 	Alias string `json:"alias,omitempty"` // Empty if the default provider configuration is referenced
 }
+
+type ProviderRequirement struct {
+	Version []string `json:"version"`
+	Source  string   `json:"source"`
+}

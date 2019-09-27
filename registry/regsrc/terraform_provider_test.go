@@ -5,43 +5,41 @@ import (
 )
 
 func TestNewTerraformProviderNamespace(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		name              string
 		provider          string
+		source            string
 		expectedNamespace string
 		expectedName      string
 	}{
-		{
-			name:              "default",
+		"default": {
 			provider:          "null",
+			source:            "null",
 			expectedNamespace: "-",
-			expectedName:      "null",
-		}, {
+		},
+		"explicit": {
 			name:              "explicit",
-			provider:          "terraform-providers/null",
+			provider:          "null",
+			source:            "terraform-providers/null",
 			expectedNamespace: "terraform-providers",
-			expectedName:      "null",
-		}, {
+		},
+
+		"community": {
 			name:              "community",
-			provider:          "community-providers/null",
+			provider:          "null",
+			source:            "community-providers/null",
 			expectedNamespace: "community-providers",
-			expectedName:      "null",
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			actual := NewTerraformProvider(tt.provider, "", "")
-
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			actual := NewTerraformProvider(tt.provider, "", "", tt.source)
 			if actual == nil {
 				t.Fatal("NewTerraformProvider() unexpectedly returned nil provider")
 			}
-
 			if v := actual.RawNamespace; v != tt.expectedNamespace {
 				t.Fatalf("RawNamespace = %v, wanted %v", v, tt.expectedNamespace)
-			}
-			if v := actual.RawName; v != tt.expectedName {
-				t.Fatalf("RawName = %v, wanted %v", v, tt.expectedName)
 			}
 		})
 	}

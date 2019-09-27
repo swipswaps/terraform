@@ -204,7 +204,7 @@ func (i *ProviderInstaller) Get(provider addrs.ProviderType, req Constraints) (P
 			closestVersion.String(), closestVersion.MinorUpgradeConstraintStr(), constraintStr)))
 	}
 
-	downloadURLs, err := i.listProviderDownloadURLs(providerSource, versionMeta.Version)
+	downloadURLs, err := i.listProviderDownloadURLs(provider, versionMeta.Version)
 	if err != nil {
 		return PluginMeta{}, diags, err
 	}
@@ -462,7 +462,7 @@ func (i *ProviderInstaller) getProviderChecksum(resp *response.TerraformProvider
 }
 
 func (i *ProviderInstaller) hostname() (string, error) {
-	provider := regsrc.NewTerraformProvider("", i.OS, i.Arch)
+	provider := regsrc.NewTerraformProvider("", i.OS, i.Arch, "")
 	svchost, err := provider.SvcHost()
 	if err != nil {
 		return "", err
@@ -473,15 +473,15 @@ func (i *ProviderInstaller) hostname() (string, error) {
 
 // list all versions available for the named provider
 func (i *ProviderInstaller) listProviderVersions(provider addrs.ProviderType) (*response.TerraformProviderVersions, error) {
-	req := regsrc.NewTerraformProvider(provider.Name, i.OS, i.Arch)
+	req := regsrc.NewTerraformProvider(provider.Name, i.OS, i.Arch, provider.Source)
 	versions, err := i.registry.TerraformProviderVersions(req)
 	return versions, err
 }
 
-func (i *ProviderInstaller) listProviderDownloadURLs(name, version string) (*response.TerraformProviderPlatformLocation, error) {
-	urls, err := i.registry.TerraformProviderLocation(regsrc.NewTerraformProvider(name, i.OS, i.Arch), version)
+func (i *ProviderInstaller) listProviderDownloadURLs(provider addrs.ProviderType, version string) (*response.TerraformProviderPlatformLocation, error) {
+	urls, err := i.registry.TerraformProviderLocation(regsrc.NewTerraformProvider(provider.Name, i.OS, i.Arch, provider.Source), version)
 	if urls == nil {
-		return nil, fmt.Errorf("No download urls found for provider %s", name)
+		return nil, fmt.Errorf("No download urls found for provider %s", provider.Name)
 	}
 	return urls, err
 }
