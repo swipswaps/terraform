@@ -118,9 +118,14 @@ func (m *Module) PluginRequirements() discovery.PluginRequirements {
 		pty := inst.Type()
 		if existing, exists := ret[pty]; exists {
 			ret[pty].Versions = existing.Versions.Append(dep.Constraints)
+			// TODO: many things:
+			// - existing does not have source yet.
+			// - check for conflict
+			ret[pty].Source = existing.Source
 		} else {
 			ret[pty] = &discovery.PluginConstraints{
 				Versions: dep.Constraints,
+				Source:   dep.Source,
 			}
 		}
 	}

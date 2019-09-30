@@ -113,3 +113,15 @@ var requiredProvidersSchema = &hcl.BodySchema{
 		},
 	},
 }
+
+// subtly differs from providerConfigSchema
+var requiredProviderSchema = &hcl.BodySchema{
+	Attributes: []hcl.AttributeSchema{
+		{
+			Name: "version",
+		},
+		{
+			Name: "source",
+		},
+	},
+}

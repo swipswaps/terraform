@@ -58,6 +58,7 @@ func (r PluginRequirements) Merge(other PluginRequirements) PluginRequirements {
 		ret[n] = &PluginConstraints{
 			Versions: Constraints{}.Append(c.Versions),
 			SHA256:   c.SHA256,
+			Source:   c.Source,
 		}
 	}
 	for n, c := range other {
@@ -75,12 +76,17 @@ func (r PluginRequirements) Merge(other PluginRequirements) PluginRequirements {
 			} else {
 				ret[n].SHA256 = c.SHA256 // might still be nil
 			}
+			if existing.Source != "" {
+				ret[n].Source = existing.Source
+			}
 		} else {
 			ret[n] = &PluginConstraints{
 				Versions: Constraints{}.Append(c.Versions),
 				SHA256:   c.SHA256,
+				Source:   c.Source,
 			}
 		}
+
 	}
 	return ret
 }

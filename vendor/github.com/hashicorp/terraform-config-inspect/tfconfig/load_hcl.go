@@ -52,35 +52,24 @@ func loadModule(dir string) (*Module, Diagnostics) {
 				}
 
 				for _, block := range content.Blocks {
-					// Our schema only allows required_providers here, so we
-					// assume that we'll only get that block type.
-					// attrs, attrDiags := block.Body.JustAttributes()
-					// diags = append(diags, attrDiags...)
-
-					// for name, attr := range attrs {
 					var version, source string
-					// 	valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
-					// 	diags = append(diags, valDiags...)
-					// 	if !valDiags.HasErrors() {
-					// 		mod.RequiredProviders[name] = append(mod.RequiredProviders[name], version)
-					// 	}
-					// }
-					content, _, providerBlockDiags := block.Body.PartialContent(requiredProvidersSchema)
-					diags = append(diags, providerBlockDiags...)
+					content, _, providersBlockDiags := block.Body.PartialContent(requiredProvidersSchema)
+					diags = append(diags, providersBlockDiags...)
 					for _, block := range content.Blocks {
-						//TODO ugh no
+						// block.Body.JustAttributes() is maybe what I need here?
+						innerContent, _, providerBlockDiags := block.Body.PartialContent(requiredProviderSchema)
+						diags = append(diags, providerBlockDiags...)
 						pr := &ProviderRequirement{Version: []string{}}
-						if attr, exists := content.Attributes["version"]; exists {
+						if attr, exists := innerContent.Attributes["version"]; exists {
 							valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
 							diags = append(diags, valDiags...)
 							pr.Version = append(pr.Version, version)
 						}
-						if attr, exists := content.Attributes["source"]; exists {
+						if attr, exists := innerContent.Attributes["source"]; exists {
 							sourceDiags := gohcl.DecodeExpression(attr.Expr, nil, &source)
 							diags = append(diags, sourceDiags...)
 							pr.Source = source
 						}
-
 						name := block.Labels[0]
 						// TODO: validate that the provider isn't already defined
 						mod.RequiredProviders[name] = pr
