@@ -98,10 +98,9 @@ func (c *Config) ProviderDependencies() (*moduledeps.Module, tfdiags.Diagnostics
 				continue
 			}
 			constraints = append(constraints, constraint...)
-
-			if req.Source != "" {
-				source = req.Source
-			}
+		}
+		if req.Source != "" {
+			source = req.Source
 		}
 		providers[inst] = moduledeps.ProviderDependency{
 			Constraints: discovery.NewConstraints(constraints),

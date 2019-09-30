@@ -56,6 +56,7 @@ func loadModule(dir string) (*Module, Diagnostics) {
 					content, _, providersBlockDiags := block.Body.PartialContent(requiredProvidersSchema)
 					diags = append(diags, providersBlockDiags...)
 					for _, block := range content.Blocks {
+						name := block.Labels[0]
 						// block.Body.JustAttributes() is maybe what I need here?
 						innerContent, _, providerBlockDiags := block.Body.PartialContent(requiredProviderSchema)
 						diags = append(diags, providerBlockDiags...)
@@ -70,7 +71,7 @@ func loadModule(dir string) (*Module, Diagnostics) {
 							diags = append(diags, sourceDiags...)
 							pr.Source = source
 						}
-						name := block.Labels[0]
+
 						// TODO: validate that the provider isn't already defined
 						mod.RequiredProviders[name] = pr
 					}
