@@ -430,14 +430,16 @@ func (i *ProviderInstaller) getProviderChecksum(resp *response.TerraformProvider
 		return "", ErrorSignatureVerification
 	}
 
-	// Also verify the GPG signature against the HashiCorp public key. This is
-	// a temporary additional check until a more robust key verification
-	// process is added in a future release.
-	_, err = verifySig(shasums, signature, HashicorpPublicKey)
-	if err != nil {
-		log.Printf("[ERROR] error verifying signature against HashiCorp public key: %s", err)
-		return "", ErrorSignatureVerification
-	}
+	// // Also verify the GPG signature against the HashiCorp public key. This is
+	// // a temporary additional check until a more robust key verification
+	// // process is added in a future release.
+	// _, err = verifySig(shasums, signature, HashicorpPublicKey)
+	// if err != nil {
+	// 	log.Printf("[ERROR] error verifying signature against HashiCorp public key: %s", err)
+	// 	return "", ErrorSignatureVerification
+	// }
+	// TODO/TODECIDE: alert the user if they are using a provider that is not signed by HashiCorp
+	// ALSO TODECIDE: Continue to use the hard-coded hashicorp security key for providers in the HashiCorp namespace.
 
 	// Display identity for GPG key which succeeded verifying the signature.
 	// This could also be used to display to the user with i.Ui.Info().
