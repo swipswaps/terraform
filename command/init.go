@@ -501,6 +501,7 @@ func (c *InitCommand) getProviders(earlyConfig *earlyconfig.Config, state *state
 
 	requirements := configReqs.Merge(stateReqs)
 	if len(requirements) == 0 {
+		panic("hey now")
 		// nothing to initialize
 		return false, nil
 	}

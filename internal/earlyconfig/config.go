@@ -2,6 +2,7 @@ package earlyconfig
 
 import (
 	"fmt"
+	"log"
 	"sort"
 
 	version "github.com/hashicorp/go-version"
@@ -82,8 +83,11 @@ func (c *Config) ProviderDependencies() (*moduledeps.Module, tfdiags.Diagnostics
 		Name: name,
 	}
 
+	log.Printf("in ProviderDependencies(), c.Module.RequiredProviders = %#v\n", c.Module.RequiredProviders)
+
 	providers := make(moduledeps.Providers)
 	for name, req := range c.Module.RequiredProviders {
+
 		inst := moduledeps.ProviderInstance(name)
 		var constraints version.Constraints
 		var source string

@@ -1,6 +1,7 @@
 package moduledeps
 
 import (
+	"log"
 	"sort"
 	"strings"
 
@@ -129,6 +130,7 @@ func (m *Module) PluginRequirements() discovery.PluginRequirements {
 			}
 		}
 	}
+	log.Printf("[TRACE] ret from m.PluginRequirements(): %#v\n", ret)
 	return ret
 }
 

@@ -2,7 +2,9 @@ package configs
 
 import (
 	"fmt"
+	"log"
 
+	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -109,23 +111,51 @@ type ProviderRequirement struct {
 }
 
 func decodeRequiredProvidersBlock(block *hcl.Block) ([]*ProviderRequirement, hcl.Diagnostics) {
-	content, _, diags := block.Body.PartialContent(providerRequirementBlockSchema)
-	reqs := make([]*ProviderRequirement, len(content.Blocks))
-
-	for _, block := range content.Blocks {
-		pr := &ProviderRequirement{
-			Name: block.Labels[0],
+	attrs, diags := block.Body.JustAttributes()
+	var reqs []*ProviderRequirement
+	for name, attr := range attrs {
+		expr, err := attr.Expr.Value(nil)
+		if err != nil {
+			log.Printf("[TRACE] expr err in decodeRequiredProvidersBlock: %s\n", err.Error())
+			panic("buhbye")
 		}
-		if attr, exists := content.Attributes["version"]; exists {
-			version, versionDiags := decodeVersionConstraint(attr)
-			pr.VersionConstraints = append(pr.VersionConstraints, version)
-			diags = append(diags, versionDiags...)
+		if expr.Type().IsPrimitiveType() {
+			req, reqDiags := decodeVersionConstraint(attr)
+			diags = append(diags, reqDiags...)
+			if !diags.HasErrors() {
+				reqs = append(reqs, &ProviderRequirement{
+					Name:               name,
+					VersionConstraints: []VersionConstraint{req},
+				})
+			}
+		} else if expr.Type().IsObjectType() {
+			// This is incomplete: the "name" here is the user-supplied map key, not the type name
+			pr := &ProviderRequirement{Name: name}
+			if expr.Type().HasAttribute("version") {
+				constraintStr, err := version.NewConstraint(expr.GetAttr("version").AsString())
+				if err != nil {
+					panic("error!")
+					// NewConstraint doesn't return user-friendly errors, so we'll just
+					// ignore the provided error and produce our own generic one.
+					versionDiags := &hcl.Diagnostic{
+						Severity: hcl.DiagError,
+						Summary:  "Invalid version constraint",
+						Detail:   "This string does not use correct version constraint syntax.", // Not very actionable :(
+						Subject:  attr.Expr.Range().Ptr(),
+					}
+					diags = append(diags, versionDiags)
+				}
+				vc := VersionConstraint{
+					DeclRange: attr.Range,
+					Required:  constraintStr,
+				}
+				pr.VersionConstraints = append(pr.VersionConstraints, vc)
+			}
+			if expr.Type().HasAttribute("source") {
+				pr.Source = expr.GetAttr("source").AsString()
+			}
+			reqs = append(reqs, pr)
 		}
-		if attr, exists := content.Attributes["source"]; exists {
-			sourceDiags := pr.decodeProviderSource(attr)
-			diags = append(diags, sourceDiags...)
-		}
-		reqs = append(reqs, pr)
 	}
 
 	return reqs, diags
@@ -174,8 +204,8 @@ var providerBlockSchema = &hcl.BodySchema{
 	},
 }
 
-var providerRequirementBlockSchema = &hcl.BodySchema{
-	Blocks: []hcl.BlockHeaderSchema{
-		{Type: "provider", LabelNames: []string{"name"}},
-	},
-}
+// var providerRequirementBlockSchema = &hcl.BodySchema{
+// 	Blocks: []hcl.BlockHeaderSchema{
+// 		{Type: "provider", LabelNames: []string{"name"}},
+// 	},
+// }
