@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/hcl2/hcl/hclsyntax"
-
-	"github.com/hashicorp/hcl2/gohcl"
-	"github.com/hashicorp/hcl2/hcl"
-	"github.com/hashicorp/hcl2/hclparse"
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/hashicorp/hcl/v2/gohcl"
+	"github.com/hashicorp/hcl/v2/hclparse"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 )
 
@@ -52,28 +51,15 @@ func loadModule(dir string) (*Module, Diagnostics) {
 				}
 
 				for _, block := range content.Blocks {
-					var version, source string
 					content, _, providersBlockDiags := block.Body.PartialContent(requiredProvidersSchema)
 					diags = append(diags, providersBlockDiags...)
-					for _, block := range content.Blocks {
-						name := block.Labels[0]
-						// block.Body.JustAttributes() is maybe what I need here?
-						innerContent, _, providerBlockDiags := block.Body.PartialContent(requiredProviderSchema)
-						diags = append(diags, providerBlockDiags...)
-						pr := &ProviderRequirement{Version: []string{}}
-						if attr, exists := innerContent.Attributes["version"]; exists {
-							valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
-							diags = append(diags, valDiags...)
-							pr.Version = append(pr.Version, version)
+					for _, innerBlock := range content.Blocks {
+						switch innerBlock.Type {
+						case "required_providers":
+							reqs, reqsDiags := decodeRequiredProvidersBlock(innerBlock)
+							diags = append(diags, reqsDiags...)
+							mod.ProviderRequirements = append(mod.ProviderRequirements, reqs...)
 						}
-						if attr, exists := innerContent.Attributes["source"]; exists {
-							sourceDiags := gohcl.DecodeExpression(attr.Expr, nil, &source)
-							diags = append(diags, sourceDiags...)
-							pr.Source = source
-						}
-
-						// TODO: validate that the provider isn't already defined
-						mod.RequiredProviders[name] = pr
 					}
 				}
 

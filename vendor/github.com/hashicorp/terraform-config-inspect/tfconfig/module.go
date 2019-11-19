@@ -10,7 +10,7 @@ type Module struct {
 	Outputs   map[string]*Output   `json:"outputs"`
 
 	RequiredCore      []string                        `json:"required_core,omitempty"`
-	RequiredProviders map[string]*ProviderRequirement `json:"required_providers"`
+	ProviderRequirements map[string]*ProviderRequirement `json:"required_providers"`
 
 	ManagedResources map[string]*Resource   `json:"managed_resources"`
 	DataResources    map[string]*Resource   `json:"data_resources"`
