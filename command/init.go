@@ -499,9 +499,6 @@ func (c *InitCommand) getProviders(earlyConfig *earlyconfig.Config, state *state
 	// In future we should clean this up to be a more reasoable API.
 	stateReqs := terraform.ConfigTreeDependencies(nil, state).AllPluginRequirements()
 
-	log.Printf("[TRACE] configReqs: %#v\n", configReqs)
-	log.Printf("[TRACE] stateReqs: %#v\n", stateReqs)
-
 	requirements := configReqs.Merge(stateReqs)
 	if len(requirements) == 0 {
 		// nothing to initialize
@@ -520,7 +517,7 @@ func (c *InitCommand) getProviders(earlyConfig *earlyconfig.Config, state *state
 		}
 
 		for provider, reqd := range missing {
-			pty := addrs.ProviderType{Name: provider, Source: reqd.Source}
+			pty := addrs.ProviderType{Name: reqd.TypeName, Source: reqd.Source}
 			_, providerDiags, err := c.providerInstaller.Get(pty, reqd.Versions)
 			diags = diags.Append(providerDiags)
 

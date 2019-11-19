@@ -3,6 +3,7 @@ package tfconfig
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
@@ -20,6 +21,7 @@ type ProviderRef struct {
 
 type ProviderRequirement struct {
 	Name               string
+	Alias              string
 	Source             string
 	VersionConstraints []VersionConstraint
 }
@@ -48,8 +50,8 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 				}
 			}
 		} else if expr.Type().IsObjectType() {
-			// This is incomplete: the "name" here is the user-supplied map key, not the type name
-			pr := &ProviderRequirement{Name: name}
+			pr := &ProviderRequirement{}
+			typeName := name
 			if expr.Type().HasAttribute("version") {
 				constraintStr, err := version.NewConstraint(expr.GetAttr("version").AsString())
 				if err != nil {
@@ -70,9 +72,15 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 				pr.VersionConstraints = append(pr.VersionConstraints, vc)
 			}
 			if expr.Type().HasAttribute("source") {
-				pr.Source = expr.GetAttr("source").AsString()
+				sourceStr := expr.GetAttr("source").AsString()
+				typeName = typeNameFromSource(sourceStr)
+				pr.Source = sourceStr
+				pr.Name = typeName
+				pr.Alias = name
+			} else {
+				pr.Name = name
 			}
-			reqs[name] = pr
+			reqs[typeName] = pr
 		}
 	}
 
@@ -129,4 +137,9 @@ func decodeVersionConstraint(attr *hcl.Attribute) (VersionConstraint, hcl.Diagno
 
 	ret.Required = constraints
 	return ret, diags
+}
+
+func typeNameFromSource(source string) string {
+	parts := strings.Split(source, "/")
+	return parts[len(parts)-1]
 }

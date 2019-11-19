@@ -21,8 +21,8 @@ type PluginConstraints struct {
 	// Specifies that the plugin's version must be within the given
 	// constraints.
 	Versions Constraints
-
-	Source string
+	TypeName string
+	Source   string
 
 	// If non-nil, the hash of the on-disk plugin executable must exactly
 	// match the SHA256 hash given here.
@@ -59,6 +59,7 @@ func (r PluginRequirements) Merge(other PluginRequirements) PluginRequirements {
 			Versions: Constraints{}.Append(c.Versions),
 			SHA256:   c.SHA256,
 			Source:   c.Source,
+			TypeName: c.TypeName,
 		}
 	}
 	for n, c := range other {
@@ -84,6 +85,7 @@ func (r PluginRequirements) Merge(other PluginRequirements) PluginRequirements {
 				Versions: Constraints{}.Append(c.Versions),
 				SHA256:   c.SHA256,
 				Source:   c.Source,
+				TypeName: c.TypeName,
 			}
 		}
 
