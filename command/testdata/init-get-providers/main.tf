@@ -1,6 +1,6 @@
 terraform {
   required_providers {
-    provider "exact" {
+    exact = {
       source = "hashicorp/aws"
     }
   }
