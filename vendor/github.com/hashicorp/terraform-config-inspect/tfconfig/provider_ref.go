@@ -51,7 +51,7 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 			}
 		} else if expr.Type().IsObjectType() {
 			pr := &ProviderRequirement{}
-			typeName := name
+			// typeName := name
 			if expr.Type().HasAttribute("version") {
 				constraintStr, err := version.NewConstraint(expr.GetAttr("version").AsString())
 				if err != nil {
@@ -73,14 +73,14 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 			}
 			if expr.Type().HasAttribute("source") {
 				sourceStr := expr.GetAttr("source").AsString()
-				typeName = typeNameFromSource(sourceStr)
+				typeName := typeNameFromSource(sourceStr)
 				pr.Source = sourceStr
 				pr.Name = typeName
 				pr.Alias = name
 			} else {
 				pr.Name = name
 			}
-			reqs[typeName] = pr
+			reqs[name] = pr
 		}
 	}
 

@@ -124,15 +124,21 @@ func (m *Module) PluginRequirements() discovery.PluginRequirements {
 			// - existing does not have source yet.
 			// - check for conflict
 			ret[pty].Source = existing.Source
+			ret[pty].TypeName = existing.TypeName
 		} else {
 			ret[pty] = &discovery.PluginConstraints{
 				Versions: dep.Constraints,
 				Source:   dep.Source,
+				TypeName: typeNameFromSource(dep.Source),
 			}
 		}
 	}
-	log.Printf("[TRACE] ret from m.PluginRequirements(): %#v\n", ret)
 	return ret
+}
+
+func typeNameFromSource(source string) string {
+	parts := strings.Split(source, "/")
+	return parts[len(parts)-1]
 }
 
 // AllPluginRequirements calls PluginRequirements for the receiver and all

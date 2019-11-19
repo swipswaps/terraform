@@ -3,6 +3,7 @@ package tfconfig
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/go-version"
@@ -177,6 +178,8 @@ func loadModule(dir string) (*Module, Diagnostics) {
 				if _, exists := mod.ProviderRequirements[name]; !exists {
 					//  TODO this should be better
 					mod.ProviderRequirements[name] = &ProviderRequirement{}
+				} else {
+					log.Printf("load_hcl found existing provider %s\n", name)
 				}
 
 				if attr, defined := content.Attributes["version"]; defined {
