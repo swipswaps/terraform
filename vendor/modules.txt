@@ -161,7 +161,7 @@ github.com/dylanmei/iso8601
 github.com/dylanmei/winrmtest
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
-# github.com/go-test/deep v1.0.3
+# github.com/go-test/deep v1.0.4
 github.com/go-test/deep
 # github.com/gogo/protobuf v1.2.0
 github.com/gogo/protobuf/gogoproto
@@ -476,7 +476,7 @@ github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/xlog
 github.com/ulikunitz/xz/lzma
 github.com/ulikunitz/xz/internal/hash
-# github.com/vmihailenco/msgpack v4.0.1+incompatible
+# github.com/vmihailenco/msgpack v4.0.4+incompatible
 github.com/vmihailenco/msgpack
 github.com/vmihailenco/msgpack/codes
 # github.com/xanzy/ssh-agent v0.2.1
@@ -511,16 +511,16 @@ go.opencensus.io/stats/internal
 go.opencensus.io/internal/tagencoding
 go.opencensus.io/metric/metricproducer
 go.opencensus.io/resource
-# golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+# golang.org/x/crypto v0.0.0-20191117063200-497ca9f6d64f
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/knownhosts
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/pkcs12
+golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/ed25519
-golang.org/x/crypto/internal/chacha20
 golang.org/x/crypto/poly1305
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/openpgp/armor
@@ -528,12 +528,12 @@ golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/pkcs12/internal/rc2
-golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/internal/subtle
+golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/md4
 golang.org/x/crypto/cast5
 golang.org/x/crypto/openpgp/elgamal
-# golang.org/x/net v0.0.0-20191009170851-d66e71096ffb
+# golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914
 golang.org/x/net/context
 golang.org/x/net/idna
 golang.org/x/net/trace
@@ -551,7 +551,7 @@ golang.org/x/oauth2/jwt
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/google
-# golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa
+# golang.org/x/sys v0.0.0-20191119060738-e882bf8e40c2
 golang.org/x/sys/windows
 golang.org/x/sys/unix
 golang.org/x/sys/cpu
@@ -578,7 +578,7 @@ golang.org/x/text/runes
 golang.org/x/text/internal/tag
 # golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 golang.org/x/time/rate
-# golang.org/x/tools v0.0.0-20190628153133-6cdbf07be9d0
+# golang.org/x/tools v0.0.0-20191118222007-07fc4c7f2b98
 golang.org/x/tools/cmd/cover
 golang.org/x/tools/cmd/stringer
 golang.org/x/tools/go/packages
@@ -587,6 +587,7 @@ golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/packagesdriver
 golang.org/x/tools/internal/gopathwalk
 golang.org/x/tools/internal/semver
+golang.org/x/tools/internal/span
 golang.org/x/tools/go/internal/gcimporter
 golang.org/x/tools/internal/fastwalk
 # google.golang.org/api v0.9.0
@@ -600,7 +601,7 @@ google.golang.org/api/googleapi/internal/uritemplates
 google.golang.org/api/gensupport
 google.golang.org/api/googleapi/transport
 google.golang.org/api/transport/http/internal/propagation
-# google.golang.org/appengine v1.6.1
+# google.golang.org/appengine v1.6.5
 google.golang.org/appengine/urlfetch
 google.golang.org/appengine
 google.golang.org/appengine/datastore
@@ -658,5 +659,5 @@ google.golang.org/grpc/binarylog/grpc_binarylog_v1
 google.golang.org/grpc/internal/syscall
 # gopkg.in/ini.v1 v1.42.0
 gopkg.in/ini.v1
-# gopkg.in/yaml.v2 v2.2.2
+# gopkg.in/yaml.v2 v2.2.5
 gopkg.in/yaml.v2

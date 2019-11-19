@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/hashicorp/go-version"
 	legacyhcl "github.com/hashicorp/hcl"
 	legacyast "github.com/hashicorp/hcl/hcl/ast"
 )
@@ -269,13 +270,17 @@ func loadModuleLegacyHCL(dir string) (*Module, Diagnostics) {
 				}
 
 				if block.Version != "" {
-					mod.RequiredProviders[name].Version = append(mod.RequiredProviders[name].Version, block.Version)
+					if _, ok := mod.ProviderRequirements[name]; !ok {
+						mod.ProviderRequirements[name] = &ProviderRequirement{}
+					}
+					constraintStr, _ := version.NewConstraint(block.Version)
+					mod.ProviderRequirements[name].VersionConstraints = append(mod.ProviderRequirements[name].VersionConstraints, VersionConstraint{Required: constraintStr})
 				}
 
 				// Even if there wasn't an explicit version required, we still
 				// need an entry in our map to signal the unversioned dependency.
-				if _, exists := mod.RequiredProviders[name]; !exists {
-					mod.RequiredProviders[name] = &ProviderRequirement{}
+				if _, exists := mod.ProviderRequirements[name]; !exists {
+					mod.ProviderRequirements[name] = &ProviderRequirement{}
 				}
 
 			}

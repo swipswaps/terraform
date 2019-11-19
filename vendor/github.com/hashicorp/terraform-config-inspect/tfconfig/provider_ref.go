@@ -1,10 +1,13 @@
 package tfconfig
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/zclconf/go-cty/cty"
+	"github.com/zclconf/go-cty/cty/convert"
 )
 
 // ProviderRef is a reference to a provider configuration within a module.
@@ -26,9 +29,9 @@ type VersionConstraint struct {
 	DeclRange hcl.Range
 }
 
-func decodeRequiredProvidersBlock(block *hcl.Block) ([]*ProviderRequirement, hcl.Diagnostics) {
+func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequirement, hcl.Diagnostics) {
 	attrs, diags := block.Body.JustAttributes()
-	var reqs []*ProviderRequirement
+	reqs := make(map[string]*ProviderRequirement)
 	for name, attr := range attrs {
 		expr, err := attr.Expr.Value(nil)
 		if err != nil {
@@ -39,10 +42,10 @@ func decodeRequiredProvidersBlock(block *hcl.Block) ([]*ProviderRequirement, hcl
 			req, reqDiags := decodeVersionConstraint(attr)
 			diags = append(diags, reqDiags...)
 			if !diags.HasErrors() {
-				reqs = append(reqs, &ProviderRequirement{
+				reqs[name] = &ProviderRequirement{
 					Name:               name,
 					VersionConstraints: []VersionConstraint{req},
-				})
+				}
 			}
 		} else if expr.Type().IsObjectType() {
 			// This is incomplete: the "name" here is the user-supplied map key, not the type name
@@ -69,7 +72,7 @@ func decodeRequiredProvidersBlock(block *hcl.Block) ([]*ProviderRequirement, hcl
 			if expr.Type().HasAttribute("source") {
 				pr.Source = expr.GetAttr("source").AsString()
 			}
-			reqs = append(reqs, pr)
+			reqs[name] = pr
 		}
 	}
 

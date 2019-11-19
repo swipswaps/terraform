@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 )
 
@@ -50,16 +51,13 @@ func loadModule(dir string) (*Module, Diagnostics) {
 					}
 				}
 
-				for _, block := range content.Blocks {
-					content, _, providersBlockDiags := block.Body.PartialContent(requiredProvidersSchema)
-					diags = append(diags, providersBlockDiags...)
-					for _, innerBlock := range content.Blocks {
-						switch innerBlock.Type {
-						case "required_providers":
-							reqs, reqsDiags := decodeRequiredProvidersBlock(innerBlock)
-							diags = append(diags, reqsDiags...)
-							mod.ProviderRequirements = append(mod.ProviderRequirements, reqs...)
-						}
+				for _, innerBlock := range content.Blocks {
+					switch innerBlock.Type {
+					// TODO: this isn't checking for multiple blocks. Needs to validate & merge
+					case "required_providers":
+						reqs, reqsDiags := decodeRequiredProvidersBlock(innerBlock)
+						diags = append(diags, reqsDiags...)
+						mod.ProviderRequirements = reqs
 					}
 				}
 
@@ -176,17 +174,18 @@ func loadModule(dir string) (*Module, Diagnostics) {
 				name := block.Labels[0]
 				// Even if there wasn't an explicit version required, we still
 				// need an entry in our map to signal the unversioned dependency.
-				if _, exists := mod.RequiredProviders[name]; !exists {
+				if _, exists := mod.ProviderRequirements[name]; !exists {
 					//  TODO this should be better
-					mod.RequiredProviders[name] = &ProviderRequirement{}
+					mod.ProviderRequirements[name] = &ProviderRequirement{}
 				}
 
 				if attr, defined := content.Attributes["version"]; defined {
-					var version string
-					valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
+					var ver string
+					valDiags := gohcl.DecodeExpression(attr.Expr, nil, &ver)
 					diags = append(diags, valDiags...)
 					if !valDiags.HasErrors() {
-						mod.RequiredProviders[name].Version = append(mod.RequiredProviders[name].Version, version)
+						constraintStr, _ := version.NewConstraint(ver)
+						mod.ProviderRequirements[name].VersionConstraints = append(mod.ProviderRequirements[name].VersionConstraints, VersionConstraint{Required: constraintStr})
 					}
 				}
 

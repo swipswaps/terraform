@@ -499,9 +499,11 @@ func (c *InitCommand) getProviders(earlyConfig *earlyconfig.Config, state *state
 	// In future we should clean this up to be a more reasoable API.
 	stateReqs := terraform.ConfigTreeDependencies(nil, state).AllPluginRequirements()
 
+	log.Printf("[TRACE] configReqs: %#v\n", configReqs)
+	log.Printf("[TRACE] stateReqs: %#v\n", stateReqs)
+
 	requirements := configReqs.Merge(stateReqs)
 	if len(requirements) == 0 {
-		panic("hey now")
 		// nothing to initialize
 		return false, nil
 	}

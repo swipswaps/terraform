@@ -111,6 +111,7 @@ func (s sortModules) Swap(i, j int) {
 func (m *Module) PluginRequirements() discovery.PluginRequirements {
 	ret := make(discovery.PluginRequirements)
 	for inst, dep := range m.Providers {
+		log.Printf("[TRACE] m.PluginRequirements() found provider %#v\n", inst.Type())
 		// m.Providers is keyed on provider names, such as "aws.foo".
 		// a PluginRequirements wants keys to be provider *types*, such
 		// as "aws". If there are multiple aliases for the same

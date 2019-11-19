@@ -27,7 +27,7 @@ func newModule(path string) *Module {
 		Path:              path,
 		Variables:         make(map[string]*Variable),
 		Outputs:           make(map[string]*Output),
-		RequiredProviders: make(map[string]*ProviderRequirement),
+		ProviderRequirements: make(map[string]*ProviderRequirement),
 		ManagedResources:  make(map[string]*Resource),
 		DataResources:     make(map[string]*Resource),
 		ModuleCalls:       make(map[string]*ModuleCall),

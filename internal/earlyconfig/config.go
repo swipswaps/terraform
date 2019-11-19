@@ -1,7 +1,6 @@
 package earlyconfig
 
 import (
-	"fmt"
 	"log"
 	"sort"
 
@@ -83,28 +82,32 @@ func (c *Config) ProviderDependencies() (*moduledeps.Module, tfdiags.Diagnostics
 		Name: name,
 	}
 
-	log.Printf("in ProviderDependencies(), c.Module.RequiredProviders = %#v\n", c.Module.RequiredProviders)
+	log.Printf("in ProviderDependencies(), c.Module.RequiredProviders = %#v\n", c.Module.ProviderRequirements)
 
 	providers := make(moduledeps.Providers)
-	for name, req := range c.Module.RequiredProviders {
+	for name, req := range c.Module.ProviderRequirements {
 
 		inst := moduledeps.ProviderInstance(name)
-		var constraints version.Constraints
+		//		var constraints version.Constraints
 		var source string
-		for _, vc := range req.Version {
-			constraint, err := version.NewConstraint(vc)
-			if err != nil {
-				diags = diags.Append(wrapDiagnostic(tfconfig.Diagnostic{
-					Severity: tfconfig.DiagError,
-					Summary:  "Invalid provider version constraint",
-					Detail:   fmt.Sprintf("Invalid version constraint %q for provider %s.", req.Version, name),
-				}))
-				continue
-			}
-			constraints = append(constraints, constraint...)
-		}
+		// for _, vc := range req.VersionConstraints {
+		// 	constraint, err := version.NewConstraint(vc)
+		// 	if err != nil {
+		// 		diags = diags.Append(wrapDiagnostic(tfconfig.Diagnostic{
+		// 			Severity: tfconfig.DiagError,
+		// 			Summary:  "Invalid provider version constraint",
+		// 			Detail:   fmt.Sprintf("Invalid version constraint %q for provider %s.", req.Version, name),
+		// 		}))
+		// 		continue
+		// 	}
+		//	constraints = append(constraints, constraint...)
+		//		}
 		if req.Source != "" {
 			source = req.Source
+		}
+		var constraints version.Constraints
+		for _, c := range req.VersionConstraints {
+			constraints = append(constraints, c.Required...)
 		}
 		providers[inst] = moduledeps.ProviderDependency{
 			Constraints: discovery.NewConstraints(constraints),
