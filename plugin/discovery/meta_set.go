@@ -144,11 +144,22 @@ func (s PluginMetaSet) Newest() PluginMeta {
 // invalid versions.
 func (s PluginMetaSet) ConstrainVersions(reqd PluginRequirements) map[string]PluginMetaSet {
 	ret := make(map[string]PluginMetaSet)
+
+	// this is Wrong and will not work if there are multiples of any given
+	// provider TypeNames but it's ok for now.
+	typeMap := make(map[string]string)
+	for name, req := range reqd {
+		typeMap[req.TypeName] = name
+	}
+
 	for p := range s {
-		name := p.Name
-		allowedVersions, ok := reqd[name]
+		// var allowedVersions *PluginConstraints
+		allowedVersions, ok := reqd[p.Name]
 		if !ok {
-			continue
+			typeName, ok := typeMap[p.Name]
+			if ok {
+				allowedVersions, ok = reqd[typeName]
+			}
 		}
 		if _, ok := ret[p.Name]; !ok {
 			ret[p.Name] = make(PluginMetaSet)

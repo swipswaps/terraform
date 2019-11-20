@@ -134,7 +134,6 @@ func decodeRequiredProvidersBlock(block *hcl.Block) ([]*ProviderRequirement, hcl
 			if expr.Type().HasAttribute("version") {
 				constraintStr, err := version.NewConstraint(expr.GetAttr("version").AsString())
 				if err != nil {
-					panic("error!")
 					// NewConstraint doesn't return user-friendly errors, so we'll just
 					// ignore the provided error and produce our own generic one.
 					versionDiags := &hcl.Diagnostic{
@@ -203,9 +202,3 @@ var providerBlockSchema = &hcl.BodySchema{
 		{Type: "locals"},
 	},
 }
-
-// var providerRequirementBlockSchema = &hcl.BodySchema{
-// 	Blocks: []hcl.BlockHeaderSchema{
-// 		{Type: "provider", LabelNames: []string{"name"}},
-// 	},
-// }

@@ -38,7 +38,7 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 		expr, err := attr.Expr.Value(nil)
 		if err != nil {
 			log.Printf("[TRACE] expr err in decodeRequiredProvidersBlock: %s\n", err.Error())
-			panic("buhbye")
+			panic("TODO put real error here")
 		}
 		if expr.Type().IsPrimitiveType() {
 			req, reqDiags := decodeVersionConstraint(attr)
