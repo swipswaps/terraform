@@ -189,7 +189,7 @@ func TestApply_destroyTargeted(t *testing.T) {
 				Mode: addrs.ManagedResourceMode,
 				Type: "test_instance",
 				Name: "foo",
-			}.Instance(addrs.NoKey).Absolute(addrs.RootModuleInstance),
+			}.Instance(addrs.IntKey(0)).Absolute(addrs.RootModuleInstance),
 			&states.ResourceInstanceObjectSrc{
 				AttrsJSON: []byte(`{"id":"i-ab123"}`),
 				Status:    states.ObjectReady,
@@ -203,8 +203,9 @@ func TestApply_destroyTargeted(t *testing.T) {
 				Name: "foo",
 			}.Instance(addrs.NoKey).Absolute(addrs.RootModuleInstance),
 			&states.ResourceInstanceObjectSrc{
-				AttrsJSON: []byte(`{"id":"i-abc123"}`),
-				Status:    states.ObjectReady,
+				AttrsJSON:    []byte(`{"id":"i-abc123"}`),
+				Dependencies: []addrs.AbsResource{mustResourceAddr("test_instance.foo")},
+				Status:       states.ObjectReady,
 			},
 			addrs.ProviderConfig{Type: "test"}.Absolute(addrs.RootModuleInstance),
 		)
