@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform/plugin/discovery"
 )
 
+var enableAutoMTLS = os.Getenv("TF_DISABLE_AUTOMTLS") == ""
+
 // ClientConfig returns a configuration object that can be used to instantiate
 // a client for the plugin described by the given metadata.
 func ClientConfig(m discovery.PluginMeta) *plugin.ClientConfig {
@@ -25,7 +27,7 @@ func ClientConfig(m discovery.PluginMeta) *plugin.ClientConfig {
 		Managed:          true,
 		Logger:           logger,
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-		AutoMTLS:         true,
+		AutoMTLS:         enableAutoMTLS,
 	}
 }
 
